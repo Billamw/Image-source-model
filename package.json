@@ -1,5 +1,23 @@
 {
   "dependencies": {
     "mathjs": "^11.6.0"
-  }
+  },
+  "name": "ism",
+  "version": "0.0.1",
+  "description": "calculating Image Source Model in 3d space",
+  "main": "ImageSourceModel.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Billamw/Image-source-model.git"
+  },
+  "author": "Tilman Brach, Johan Dasbach",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Billamw/Image-source-model/issues"
+  },
+  "homepage": "https://github.com/Billamw/Image-source-model#readme"
 }
