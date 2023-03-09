@@ -1,9 +1,10 @@
 {
+  
   "dependencies": {
     "mathjs": "^11.6.0"
   },
   "name": "ism",
-  "version": "0.0.1",
+  "version": "0.5.0",
   "description": "calculating Image Source Model in 3d space",
   "main": "ImageSourceModel.js",
   "devDependencies": {},
