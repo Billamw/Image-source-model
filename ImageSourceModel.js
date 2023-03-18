@@ -7,8 +7,9 @@ const math = require('mathjs');
 // console.log(math.norm())
 
 const array = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10],[0,10,20], [10,10,20], [10,0,20], [0,0,20]];
-const speaker = [3,5,5];
-const microfon = [7,5,5];
+// const array = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10]];
+const speaker = [5,5,5];
+const microfon = [5,5,5];
 
 
 const Walls = gernerateWalls(array);
@@ -17,8 +18,9 @@ for(let i = 0; i<Walls.length; i++) {
     const imageSoundSource = getImageSoundSource(Walls[i], speaker);
     //console.log(getReflectionPoint(Walls[i], microfon, imageSoundSource));
     //console.log(getDistance(getImageSoundSource(Walls[i], speaker), microfon));
-    console.log("Wall " + (i+1) + ": " + getIntersectionPoint(Walls[i], speaker));
+    console.log("Wall " + (i+1) + " min " + Walls[i][0] + " at: " + getReflectionPoint(Walls[i], microfon, imageSoundSource) + " max " + Walls[i][2] + " is " + checkReflectionPoint(getReflectionPoint(Walls[i], microfon, imageSoundSource), Walls[i]));
 }
+OutPut();
 
 function gernerateWalls(corners = []) {
 
@@ -35,12 +37,18 @@ function gernerateWalls(corners = []) {
 
     walls[0] = backWall;
     for(let i = 0; i < (countOfRings - 1) * 4; i++) {
-        //declaration of the following corners in the same directions
+        // declaration of the following corners in the same directions
+
+        // Floor counter clock wise
         if(i % 4 == 2) {
             wall = [corners[i], corners[i+4], corners[i+5], corners[i+1]];
-        } else if(i % 4 == 3) {
+        }
+        // left Wall
+        else if(i % 4 == 3) {
             wall = [corners[i], corners[i+4], corners[i+1], corners[i-3]];
-        } else {
+        }
+        // Ceiling and Floor
+        else {
             wall = [corners[i], corners[i+1], corners[i+5], corners[i+4]];
         }
         walls[i+1] = wall;
@@ -66,25 +74,11 @@ function getImageSoundSource(wall = [], speaker = []) {
     return math.add(speaker, math.multiply(2*lambda, nvec));
 }
 
-//For testing purposes:
-
-function getIntersectionPoint(wall = [], speaker = []){
+// we need to check if the reflectionpoint is valid
+function getReflectionPoint(wall = [], microfon = [], ISS = []) {
     let lvec = wall[0];
     let svec = math.subtract(wall[1], wall[0]);
     let dvec = math.subtract(wall[3], wall[0]);
-    let nvec = math.cross(dvec, svec);
-    nvec = math.divide(nvec, math.norm(nvec));
-    let tmp = math.subtract(lvec, speaker);
-    //calculating intersectionpoint of plane and speaker
-    let lambda = (nvec[0] * tmp[0] + nvec[1] * tmp[1] + nvec[2] * tmp[2]) / (nvec[0] + nvec[1] + nvec[2]);
-    return math.add(speaker, math.multiply(lambda, nvec));
-}
-
-// we need to check if the reflectionpoint is valid
-function getReflectionPoint(plane = [], microfon = [], ISS = []) {
-    let lvec = plane[0];
-    let svec = math.subtract(plane[1], plane[0]);
-    let dvec = math.subtract(plane[3], plane[0]);
     let nvec = math.cross(dvec, svec);
     nvec = math.divide(nvec, math.norm(nvec));
     let tmp = math.subtract(lvec, microfon);
@@ -121,7 +115,7 @@ function getAngleBetweenPlanes(plane1 = [], plane2 = []){
 // function isValid(/*not sure yet what to parse*/){
     
 //     //if two walls can be combined to one wall -> No Calculation for the wall needed if teh microfon is not above or below it!
-//     if(getAngleBetweenPlanes == 0){
+//     if(abs(getAngleBetweenPlanes) <= 0.01){
 //         if(/*Reflection Point valid*/){
 //             return true;
 //         }
@@ -139,3 +133,50 @@ function getAngleBetweenPlanes(plane1 = [], plane2 = []){
 //     }
 //     return false;
 // }
+
+
+function checkReflectionPoint(reflP, wall) {
+    let xmin = math.min(wall[0][0], wall[2][0]);
+    let ymin = math.min(wall[0][1], wall[2][1]);
+    let zmin = math.min(wall[0][2], wall[2][2]);
+    let xmax = math.max(wall[0][0], wall[2][0]);
+    let ymax = math.max(wall[0][1], wall[2][1]);
+    let zmax = math.max(wall[0][2], wall[2][2]);
+    
+    let result = false;
+    if(xmin <= reflP[0] && reflP[0] <= xmax && ymin <= reflP[1] && reflP[1] <= ymax && zmin <= reflP[2] && reflP[2] <= zmax){
+        result = true;
+    } else {
+        result = false;
+    }
+    
+    return result;
+}
+function OutPut() {
+    for(let i = 0; i<Walls.length; i++) {
+        let distance = getDistance(getImageSoundSource(Walls[i], speaker), microfon);
+
+        if(checkReflectionPoint(getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
+            if(i == 0) {
+                console.log("back wall.\tReflection distance = " + distance )
+            }
+            if(i == Walls.length-1) {
+                console.log("front wall.\tReflection distance = " + distance)
+            }
+            if(i%4 == 1 && i!= Walls.length-1) {
+                console.log((parseInt(i/5)+1) + ". ceiling.\tReflection distance = " + distance)
+            }
+            if(i%4 == 2) {
+                console.log((parseInt(i/5)+1) + ". right wall.\tReflection distance = " + distance)
+            }
+            if(i%4 == 3) {
+                console.log((parseInt(i/5)+1) + ". floor.\tReflection distance = " + distance)
+            }
+            if(i%4 == 0 && i != 0) {
+                console.log((parseInt(i/5)+1) + ". left wall.\tReflection distance = " + distance)
+            }
+        }
+    }
+
+}
+        
