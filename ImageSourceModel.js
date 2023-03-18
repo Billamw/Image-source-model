@@ -1,16 +1,10 @@
 const math = require('mathjs');
 
-// math.norm = length of a vector
-
 // Top left, Top right, Bottom right, Bottom left
-// const wall = {TL:[0,0,0],TR:[0,0,0],BR:[0,0,0],BL:[0,0,0]};
-// console.log(math.norm())
-
 const array = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10],[0,10,20], [10,10,20], [10,0,20], [0,0,20]];
 // const array = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10]];
 const speaker = [5,5,5];
 const microfon = [5,5,5];
-
 
 const Walls = gernerateWalls(array);
 
@@ -23,7 +17,6 @@ for(let i = 0; i<Walls.length; i++) {
 OutPut();
 
 function gernerateWalls(corners = []) {
-
     if(corners.length % 4 != 0) {
         throw {name: "Invalid room geometry", message:"Number of corners must be divisable by 4( Corners: " + corners.length + ")"};
     }
@@ -39,7 +32,7 @@ function gernerateWalls(corners = []) {
     for(let i = 0; i < (countOfRings - 1) * 4; i++) {
         // declaration of the following corners in the same directions
 
-        // Floor counter clock wise
+        // Floor (Corners are added counter clock wise(if watched from outside))
         if(i % 4 == 2) {
             wall = [corners[i], corners[i+4], corners[i+5], corners[i+1]];
         }
@@ -68,13 +61,14 @@ function getImageSoundSource(wall = [], speaker = []) {
     let dvec = math.subtract(wall[3], wall[0]);
     let nvec = math.cross(dvec, svec);
     nvec = math.divide(nvec, math.norm(nvec));
-    let tmp = math.subtract(lvec, speaker);
-    //calculating intersectionpoint of plane and speaker
-    let lambda = (nvec[0] * tmp[0] + nvec[1] * tmp[1] + nvec[2] * tmp[2]) / (nvec[0] + nvec[1] + nvec[2]);
+    let levToSpeaker = math.subtract(lvec, speaker);
+    // calculating intersectionpoint of plane and speaker
+    // let lambda = (nvec[0] * levToSpeaker[0] + nvec[1] * levToSpeaker[1] + nvec[2] * levToSpeaker[2]) / (nvec[0] + nvec[1] + nvec[2]);
+    let lambda = math.dot(nvec, levToSpeaker) / (nvec[0] + nvec[1] + nvec[2]);
     return math.add(speaker, math.multiply(2*lambda, nvec));
 }
 
-// we need to check if the reflectionpoint is valid
+// check if the reflectionpoint is valid
 function getReflectionPoint(wall = [], microfon = [], ISS = []) {
     let lvec = wall[0];
     let svec = math.subtract(wall[1], wall[0]);
@@ -93,7 +87,8 @@ function getDistance(ISS = [], microfon = []) {
    return math.norm(math.subtract(ISS, microfon));
 }
 
-//Returns the Angle between two planes, or further between two walls. Needed for truth check
+//If this class will be upgraded
+//Returns the Angle between two planes
 function getAngleBetweenPlanes(plane1 = [], plane2 = []){
     //Get the Normal Vectors of two planes to calculate the angle between both
     //Plane 1:
@@ -106,35 +101,12 @@ function getAngleBetweenPlanes(plane1 = [], plane2 = []){
     let nvec2 = math.cross(dvec2, svec2);
 
     //Calculate the angle:
-
     let angle = math.acos(math.multiply(nvec1, nvec2)/(math.norm(nvec1)*math.norm(nvec2)))
 
     return angle;
 }
 
-// function isValid(/*not sure yet what to parse*/){
-    
-//     //if two walls can be combined to one wall -> No Calculation for the wall needed if teh microfon is not above or below it!
-//     if(abs(getAngleBetweenPlanes) <= 0.01){
-//         if(/*Reflection Point valid*/){
-//             return true;
-//         }
-//         if(/*Reflection Point invalid*/){
-//             return false;
-//         }
-//     }
-//     if(getAngleBetweenPlanes != 0){
-//         if(/*Reflection Point valid*/){
-//             return true;
-//         }
-//         if(/*Reflection Point invalid*/){
-//             return false;
-//         }
-//     }
-//     return false;
-// }
-
-
+// Only works with quadratic rooms
 function checkReflectionPoint(reflP, wall) {
     let xmin = math.min(wall[0][0], wall[2][0]);
     let ymin = math.min(wall[0][1], wall[2][1]);
@@ -144,14 +116,14 @@ function checkReflectionPoint(reflP, wall) {
     let zmax = math.max(wall[0][2], wall[2][2]);
     
     let result = false;
-    if(xmin <= reflP[0] && reflP[0] <= xmax && ymin <= reflP[1] && reflP[1] <= ymax && zmin <= reflP[2] && reflP[2] <= zmax){
+    if((xmin <= reflP[0] && reflP[0] <= xmax) && (ymin <= reflP[1] && reflP[1] <= ymax) && (zmin <= reflP[2] && reflP[2] <= zmax)){
         result = true;
     } else {
         result = false;
     }
-    
     return result;
 }
+
 function OutPut() {
     for(let i = 0; i<Walls.length; i++) {
         let distance = getDistance(getImageSoundSource(Walls[i], speaker), microfon);
@@ -177,6 +149,5 @@ function OutPut() {
             }
         }
     }
-
 }
         
