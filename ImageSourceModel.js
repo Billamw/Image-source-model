@@ -1,17 +1,17 @@
 const math = require('mathjs');
 
-// Top left, Top right, Bottom right, Bottom left
-const array = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10],[0,10,20], [10,10,20], [10,0,20], [0,0,20]];
-// const array = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10]];
+// Corners will be inserted in order: Top left, Top right, Bottom right, Bottom left
+const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10],[0,10,20], [10,10,20], [10,0,20], [0,0,20]];
+// const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10]];
 const speaker = [5,5,5];
 const microfon = [5,5,5];
 
-const Walls = gernerateWalls(array);
+const Walls = gernerateWalls(corners);
 
 for(let i = 0; i<Walls.length; i++) {
     const imageSoundSource = getImageSoundSource(Walls[i], speaker);
     //console.log(getReflectionPoint(Walls[i], microfon, imageSoundSource));
-    //console.log(getDistance(getImageSoundSource(Walls[i], speaker), microfon));
+    //console.log(getDistance(imageSoundSource, microfon));
     console.log("Wall " + (i+1) + " min " + Walls[i][0] + " at: " + getReflectionPoint(Walls[i], microfon, imageSoundSource) + " max " + Walls[i][2] + " is " + checkReflectionPoint(getReflectionPoint(Walls[i], microfon, imageSoundSource), Walls[i]));
 }
 OutPut();
@@ -32,7 +32,7 @@ function gernerateWalls(corners = []) {
     for(let i = 0; i < (countOfRings - 1) * 4; i++) {
         // declaration of the following corners in the same directions
 
-        // Floor (Corners are added counter clock wise(if watched from outside))
+        // Floor (Corners are added counter clock wise(watched from outside))
         if(i % 4 == 2) {
             wall = [corners[i], corners[i+4], corners[i+5], corners[i+1]];
         }
