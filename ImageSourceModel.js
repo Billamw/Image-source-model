@@ -10,11 +10,13 @@ const Walls = gernerateWalls(corners);
 
 for(let i = 0; i<Walls.length; i++) {
     const imageSoundSource = getImageSoundSource(Walls[i], speaker);
-    //console.log(getReflectionPoint(Walls[i], microfon, imageSoundSource));
-    //console.log(getDistance(imageSoundSource, microfon));
-    console.log("Wall " + (i+1) + " min " + Walls[i][0] + " at: " + getReflectionPoint(Walls[i], microfon, imageSoundSource) + " max " + Walls[i][2] + " is " + checkReflectionPoint(getReflectionPoint(Walls[i], microfon, imageSoundSource), Walls[i]));
+    ////////////////////////////////////
+    console.log("Wall " + (i+1) + " min y" + Walls[i][0] + " reflection at: " + getReflectionPoint(Walls[i], microfon, imageSoundSource) + " max " + Walls[i][2] + " is " + checkReflectionPoint(getReflectionPoint(Walls[i], microfon, imageSoundSource), Walls[i]));
+    ////////////////////////////////////
 }
-OutPut();
+///////////
+OutPut();//
+///////////
 
 function gernerateWalls(corners = []) {
     if(corners.length % 4 != 0) {
@@ -63,7 +65,6 @@ function getImageSoundSource(wall = [], speaker = []) {
     nvec = math.divide(nvec, math.norm(nvec));
     let levToSpeaker = math.subtract(lvec, speaker);
     // calculating intersectionpoint of plane and speaker
-    // let lambda = (nvec[0] * levToSpeaker[0] + nvec[1] * levToSpeaker[1] + nvec[2] * levToSpeaker[2]) / (nvec[0] + nvec[1] + nvec[2]);
     let lambda = math.dot(nvec, levToSpeaker) / (nvec[0] + nvec[1] + nvec[2]);
     return math.add(speaker, math.multiply(2*lambda, nvec));
 }
@@ -75,11 +76,11 @@ function getReflectionPoint(wall = [], microfon = [], ISS = []) {
     let dvec = math.subtract(wall[3], wall[0]);
     let nvec = math.cross(dvec, svec);
     nvec = math.divide(nvec, math.norm(nvec));
-    let tmp = math.subtract(lvec, microfon);
+    let lecToMic = math.subtract(lvec, microfon);
     //dvecLine: direction vector of line
     let dvecLine = math.subtract(microfon, ISS); 
     //calculating reflectionpoint
-    let lambda = (nvec[0] * tmp[0] + nvec[1] * tmp[1] + nvec[2] * tmp[2]) / (dvecLine[0] + dvecLine[1] + dvecLine[2]);
+    let lambda = (nvec[0] * lecToMic[0] + nvec[1] * lecToMic[1] + nvec[2] * lecToMic[2]) / (dvecLine[0] + dvecLine[1] + dvecLine[2]);
     return math.add(microfon, math.multiply(lambda, math.subtract(microfon, ISS)));
 }
 
@@ -87,26 +88,26 @@ function getDistance(ISS = [], microfon = []) {
    return math.norm(math.subtract(ISS, microfon));
 }
 
-//If this class will be upgraded
-//Returns the Angle between two planes
+// If this class will be upgraded
+// Returns the Angle between two planes
 function getAngleBetweenPlanes(plane1 = [], plane2 = []){
-    //Get the Normal Vectors of two planes to calculate the angle between both
-    //Plane 1:
+    // Get the Normal Vectors of two planes to calculate the angle between both
+    // Plane 1:
     let svec1 = math.subtract(plane1[1], plane1[0]);
     let dvec1 = math.subtract(plane1[3], plane1[0]);
     let nvec1 = math.cross(dvec1, svec1);
-    //Plane 2:
+    // Plane 2:
     let svec2 = math.subtract(plane2[1], plane2[0]);
     let dvec2 = math.subtract(plane2[3], plane2[0]);
     let nvec2 = math.cross(dvec2, svec2);
 
-    //Calculate the angle:
+    // Calculate the angle:
     let angle = math.acos(math.multiply(nvec1, nvec2)/(math.norm(nvec1)*math.norm(nvec2)))
 
     return angle;
 }
 
-// Only works with quadratic rooms
+// Only works with quadratic rooms yet
 function checkReflectionPoint(reflP, wall) {
     let xmin = math.min(wall[0][0], wall[2][0]);
     let ymin = math.min(wall[0][1], wall[2][1]);
