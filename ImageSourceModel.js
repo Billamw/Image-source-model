@@ -8,12 +8,12 @@ const microfon = [5,5,5];
 
 const Walls = gernerateWalls(corners);
 
-for(let i = 0; i<Walls.length; i++) {
-    const imageSoundSource = getImageSoundSource(Walls[i], speaker);
-    ////////////////////////////////////
-    console.log("Wall " + (i+1) + " min y" + Walls[i][0] + " reflection at: " + getReflectionPoint(Walls[i], microfon, imageSoundSource) + " max " + Walls[i][2] + " is " + checkReflectionPoint(getReflectionPoint(Walls[i], microfon, imageSoundSource), Walls[i]));
-    ////////////////////////////////////
-}
+// for(let i = 0; i<Walls.length; i++) {
+//     const imageSoundSource = getImageSoundSource(Walls[i], speaker);
+//     ////////////////////////////////////
+//     console.log("Wall " + (i+1) + " min y" + Walls[i][0] + " reflection at: " + getReflectionPoint(Walls[i], microfon, imageSoundSource) + " max " + Walls[i][2] + " is " + checkReflectionPoint(getReflectionPoint(Walls[i], microfon, imageSoundSource), Walls[i]));
+//     ////////////////////////////////////
+// }
 ///////////
 OutPut();//
 ///////////
@@ -125,11 +125,59 @@ function checkReflectionPoint(reflP, wall) {
     return result;
 }
 
+function needsAName(ISS=[], microfon=[], wall=[]) {
+    let isValid = false;
+
+    for(let i=0; i<wall.length; i++) {
+        edgeStart = wall[i];
+        edgeEnd   = wall[(i+1)%wall.length];
+
+        let nvec = math.cross(math.subtract(edgeEnd, edgeStart), [0,0,1]);
+        if(math.norm(nvec) == 0) {
+            nvec = math.cross(math.subtract(edgeEnd, edgeStart), [0,1,0]);
+        }
+        nvec = math.multiply(nvec, 1/math.norm(nvec));
+
+        let distance = math.dot(nvec, math.subtract(edgeStart, math.divide(ISS, math.dot(nvec, microfon))));
+        if(distance > 0) {
+            intersectionPoint = math.add(ISS, math.multiply(microfon, distance))
+            if(checkReflectionPoint2(intersectionPoint, wall)) {
+                isValid = true;
+                continue;
+            }
+        }
+    }
+    return isValid;
+}
+
+function checkReflectionPoint2(reflP, wall) {
+    const v0 = math.subtract(wall[3], wall[0]);
+    const v1 = math.subtract(wall[1], wall[0]);
+    const v2 = math.subtract( reflP , wall[0]);
+    const v3 = math.subtract(wall[2], wall[0]);
+    const v4 = math.subtract( reflP , wall[1]);
+
+    let dot00 = math.dot(v0, v0);
+    let dot01 = math.dot(v0, v1);
+    let dot02 = math.dot(v0, v2);
+    let dot11 = math.dot(v1, v1);
+    let dot12 = math.dot(v1, v2);
+
+    //Baryzentrical coordiantes
+    let invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    let u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    let v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    return(u >= 0) && (v >= 0) && (u + v < 1)
+}
+
 function OutPut() {
     for(let i = 0; i<Walls.length; i++) {
         let distance = getDistance(getImageSoundSource(Walls[i], speaker), microfon);
 
-        if(checkReflectionPoint(getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
+        // if(checkReflectionPoint(getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
+        if(checkReflectionPoint2(getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
+        // if(needsAName(getImageSoundSource(Walls[i],speaker), microfon, Walls[i])) {
             if(i == 0) {
                 console.log("back wall.\tReflection distance = " + distance )
             }
