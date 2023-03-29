@@ -1,19 +1,26 @@
 const math = require('mathjs');
 
 // Corners will be inserted in order: Top left, Top right, Bottom right, Bottom left
-const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10],[0,10,20], [10,10,20], [10,0,20], [0,0,20]];
-// const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10]];
-const speaker = [5,5,5];
+// const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10],[0,10,20], [10,10,20], [10,0,20], [0,0,20]];
+const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10]];
+const speaker = [5,5,9];
 const microfon = [5,5,5];
 
 const Walls = gernerateWalls(corners);
 
-// for(let i = 0; i<Walls.length; i++) {
-//     const imageSoundSource = getImageSoundSource(Walls[i], speaker);
-//     ////////////////////////////////////
-//     console.log("Wall " + (i+1) + " min y" + Walls[i][0] + " reflection at: " + getReflectionPoint(Walls[i], microfon, imageSoundSource) + " max " + Walls[i][2] + " is " + checkReflectionPoint(getReflectionPoint(Walls[i], microfon, imageSoundSource), Walls[i]));
-//     ////////////////////////////////////
-// }
+for(let i = 0; i<Walls.length; i++) {
+    // const imageSoundSource = getImageSoundSource(Walls[i], speaker);
+
+    // console.log(i + " ISS-mic: " + math.subtract(microfon, imageSoundSource))
+    // console.log(i + " ISS: " + imageSoundSource)
+    // console.log(i + "Wall:" + Walls[i][0] + " " + Walls[i][1] + " " + Walls[i][2])
+    // console.log(i + "refl:" + getReflectionPoint(Walls[i], microfon, imageSoundSource))
+    // console.log(checkValidReflection(getReflectionPoint(Walls[i], microfon, imageSoundSource), Walls[i]))
+    // console.log("///////////////////////////////////////////////////////////////////////")
+    // ////////////////////////////////////
+    // console.log("Wall " + (i+1) + " min y" + Walls[i][0] + " reflection at: " + math.round(getReflectionPoint(Walls[i], microfon, imageSoundSource)) + " max " + Walls[i][2] + " is " + checkReflectionPoint(getReflectionPoint(Walls[i], microfon, imageSoundSource), Walls[i]));
+    ////////////////////////////////////
+}
 ///////////
 OutPut();//
 ///////////
@@ -76,11 +83,11 @@ function getReflectionPoint(wall = [], microfon = [], ISS = []) {
     let dvec = math.subtract(wall[3], wall[0]);
     let nvec = math.cross(dvec, svec);
     nvec = math.divide(nvec, math.norm(nvec));
-    let lecToMic = math.subtract(lvec, microfon);
+    let lvecToMic = math.subtract(lvec, microfon);
     //dvecLine: direction vector of line
     let dvecLine = math.subtract(microfon, ISS); 
     //calculating reflectionpoint
-    let lambda = (nvec[0] * lecToMic[0] + nvec[1] * lecToMic[1] + nvec[2] * lecToMic[2]) / (dvecLine[0] + dvecLine[1] + dvecLine[2]);
+    let lambda = (nvec[0] * lvecToMic[0] + nvec[1] * lvecToMic[1] + nvec[2] * lvecToMic[2]) / (dvecLine[0] + dvecLine[1] + dvecLine[2]);
     return math.add(microfon, math.multiply(lambda, math.subtract(microfon, ISS)));
 }
 
@@ -107,77 +114,27 @@ function getAngleBetweenPlanes(plane1 = [], plane2 = []){
     return angle;
 }
 
-// Only works with quadratic rooms yet
-function checkReflectionPoint(reflP, wall) {
-    let xmin = math.min(wall[0][0], wall[2][0]);
-    let ymin = math.min(wall[0][1], wall[2][1]);
-    let zmin = math.min(wall[0][2], wall[2][2]);
-    let xmax = math.max(wall[0][0], wall[2][0]);
-    let ymax = math.max(wall[0][1], wall[2][1]);
-    let zmax = math.max(wall[0][2], wall[2][2]);
-    
-    let result = false;
-    if((xmin <= reflP[0] && reflP[0] <= xmax) && (ymin <= reflP[1] && reflP[1] <= ymax) && (zmin <= reflP[2] && reflP[2] <= zmax)){
-        result = true;
-    } else {
-        result = false;
-    }
-    return result;
-}
+function checkValidReflection(reflP=[], wall=[]) {
+    let area1 = 1/2 * math.norm(math.cross(math.subtract(wall[1], wall[0]), math.subtract(wall[3], wall[0])));
+    let area2 = 1/2 * math.norm(math.cross(math.subtract(wall[1], wall[2]), math.subtract(wall[3], wall[2])));
+    let area = area1 + area2;
+    // console.log(reflP)
 
-function needsAName(ISS=[], microfon=[], wall=[]) {
-    let isValid = false;
-
+    let triangleArea = 0;
     for(let i=0; i<wall.length; i++) {
-        edgeStart = wall[i];
-        edgeEnd   = wall[(i+1)%wall.length];
-
-        let nvec = math.cross(math.subtract(edgeEnd, edgeStart), [0,0,1]);
-        if(math.norm(nvec) == 0) {
-            nvec = math.cross(math.subtract(edgeEnd, edgeStart), [0,1,0]);
-        }
-        nvec = math.multiply(nvec, 1/math.norm(nvec));
-
-        let distance = math.dot(nvec, math.subtract(edgeStart, math.divide(ISS, math.dot(nvec, microfon))));
-        if(distance > 0) {
-            intersectionPoint = math.add(ISS, math.multiply(microfon, distance))
-            if(checkReflectionPoint2(intersectionPoint, wall)) {
-                isValid = true;
-                continue;
-            }
-        }
+        triangleArea += 1/2 * math.norm(math.cross(math.subtract(wall[i], reflP), math.subtract(wall[(i+1)%wall.length], reflP)));
+        // console.log(math.subtract(wall[i], reflP) + " " + math.subtract(wall[(i+1)%wall.length], reflP))
+        // console.log("cross: " + math.cross(math.subtract(wall[i], reflP), math.subtract(wall[(i+1)%wall.length], reflP)));
     }
-    return isValid;
-}
-
-function checkReflectionPoint2(reflP, wall) {
-    const v0 = math.subtract(wall[3], wall[0]);
-    const v1 = math.subtract(wall[1], wall[0]);
-    const v2 = math.subtract( reflP , wall[0]);
-    const v3 = math.subtract(wall[2], wall[0]);
-    const v4 = math.subtract( reflP , wall[1]);
-
-    let dot00 = math.dot(v0, v0);
-    let dot01 = math.dot(v0, v1);
-    let dot02 = math.dot(v0, v2);
-    let dot11 = math.dot(v1, v1);
-    let dot12 = math.dot(v1, v2);
-
-    //Baryzentrical coordiantes
-    let invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-    let u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-    let v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-    return(u >= 0) && (v >= 0) && (u + v < 1)
+    // console.log("CheckValidRelf(): triangleAre: " + triangleArea)
+    return math.norm(triangleArea - area) < 50//math.norm(math.subtract(speaker, microfon))
 }
 
 function OutPut() {
     for(let i = 0; i<Walls.length; i++) {
         let distance = getDistance(getImageSoundSource(Walls[i], speaker), microfon);
-
-        // if(checkReflectionPoint(getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
-        if(checkReflectionPoint2(getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
-        // if(needsAName(getImageSoundSource(Walls[i],speaker), microfon, Walls[i])) {
+        // console.log("OutPut(): refl:  " + getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)))
+        if(checkValidReflection(getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
             if(i == 0) {
                 console.log("back wall.\tReflection distance = " + distance )
             }
