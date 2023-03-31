@@ -1,9 +1,9 @@
 const math = require('mathjs');
 
 // Corners will be inserted in order: Top left, Top right, Bottom right, Bottom left
-// const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10],[0,10,20], [10,10,20], [10,0,20], [0,0,20]];
-const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10]];
-const speaker = [5,5,9];
+const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10],[0,10,20], [10,10,20], [10,0,20], [0,0,20]];
+// const corners = [[0,10,0], [10,10,0], [10,0,0], [0,0,0], [0,10,10], [10,10,10], [10,0,10], [0,0,10]];
+const speaker = [5,5,15];
 const microfon = [5,5,5];
 
 const Walls = gernerateWalls(corners);
@@ -91,6 +91,23 @@ function getReflectionPoint(wall = [], microfon = [], ISS = []) {
     return math.add(microfon, math.multiply(lambda, math.subtract(microfon, ISS)));
 }
 
+function calculateIntersection(wall=[], microphone=[], ISS=[]) {
+    // Die gegebene Gerade als Vektor
+    const lineVector = math.subtract(microphone, ISS);
+  
+    // Die gegebene Ebene als Vektor
+    const planeNormal = math.cross(
+      math.subtract(wall[1], wall[0]),
+      math.subtract(wall[2], wall[0])
+    );
+  
+    // Der Punkt auf der Geraden, der den Schnittpunkt mit der Ebene bildet
+    const t = math.dot(planeNormal, math.subtract(wall[0], ISS)) / math.dot(planeNormal, lineVector);
+    const intersectionPoint = math.add(ISS, math.multiply(t, lineVector));
+  
+    return intersectionPoint;
+  }
+
 function getDistance(ISS = [], microfon = []) {
    return math.norm(math.subtract(ISS, microfon));
 }
@@ -127,14 +144,37 @@ function checkValidReflection(reflP=[], wall=[]) {
         // console.log("cross: " + math.cross(math.subtract(wall[i], reflP), math.subtract(wall[(i+1)%wall.length], reflP)));
     }
     // console.log("CheckValidRelf(): triangleAre: " + triangleArea)
-    return math.norm(triangleArea - area) < 50//math.norm(math.subtract(speaker, microfon))
+    return math.norm(triangleArea - area) < 0.1//math.norm(math.subtract(speaker, microfon))
+}
+
+function CheckWithBaryzentrical(reflP=[], wall=[]) {
+    let triangle1 = [wall[0], wall[1], wall[2]];
+    let triangle2 = [wall[0], wall[3], wall[2]];
+
+    const normal1 = math.cross(math.subtract(triangle1[1], triangle1[0]), math.subtract(triangle1[2], triangle1[0]));
+    const normal2 = math.cross(math.subtract(triangle2[1], triangle2[0]), math.subtract(triangle2[2], triangle1[0]));
+
+    // Berechne die Baryzentrischen Koordinaten des Punktes im Dreieck
+    const bc1 = [
+      math.dot(math.cross(math.subtract(triangle1[1], reflP), math.subtract(triangle1[2], reflP)), normal1) / math.dot(normal1, normal1),
+      math.dot(math.cross(math.subtract(triangle1[2], reflP), math.subtract(triangle1[0], reflP)), normal1) / math.dot(normal1, normal1),
+      math.dot(math.cross(math.subtract(triangle1[0], reflP), math.subtract(triangle1[1], reflP)), normal1) / math.dot(normal1, normal1),
+    ];
+    const bc2 = [
+        math.dot(math.cross(math.subtract(triangle2[1], reflP), math.subtract(triangle2[2], reflP)), normal2) / math.dot(normal2, normal2),
+        math.dot(math.cross(math.subtract(triangle2[2], reflP), math.subtract(triangle2[0], reflP)), normal2) / math.dot(normal2, normal2),
+        math.dot(math.cross(math.subtract(triangle2[0], reflP), math.subtract(triangle2[1], reflP)), normal2) / math.dot(normal2, normal2),
+    ];
+  
+    // Überprüfe, ob der Punkt innerhalb des Dreiecks liegt
+    return bc1.every(coord => coord >= 0 && coord <= 1) || bc2.every(coord => coord >= 0 && coord <= 1);
 }
 
 function OutPut() {
     for(let i = 0; i<Walls.length; i++) {
         let distance = getDistance(getImageSoundSource(Walls[i], speaker), microfon);
         // console.log("OutPut(): refl:  " + getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)))
-        if(checkValidReflection(getReflectionPoint(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
+        if(CheckWithBaryzentrical(calculateIntersection(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
             if(i == 0) {
                 console.log("back wall.\tReflection distance = " + distance )
             }
