@@ -80,8 +80,17 @@ function calculateIntersection(wall=[], microphone=[], ISS=[]) {
 function getDistance(ISS = [], microfon = []) {
    return math.norm(math.subtract(ISS, microfon));
 }
-
+// Changing wall to an one dim array
 function CheckWithBaryzentrical(reflP=[], wall=[]) {
+    // Triangle 1
+    // [wall[0], wall[1],wall[2],wall[3]]
+    // [wall[4], wall[5],wall[6],wall[7]]
+    // [wall[8], wall[9],wall[10],wall[11]]
+    // Triangle 2
+    // [wall[0], wall[1],wall[2],wall[3]]
+    // [wall[12], wall[13], wall[14], wall[15]]
+    // [wall[8], wall[9],wall[10],wall[11]]
+
     let triangle1 = [wall[0], wall[1], wall[2]];
     let triangle2 = [wall[0], wall[3], wall[2]];
 
