@@ -8,9 +8,9 @@ const microfon = [5,5,4];
 
 const Walls = gernerateWalls(corners);
 
-///////////
-OutPut();//
-///////////
+//////////////
+// OutPut();//
+//////////////
 
 function gernerateWalls(corners = []) {
     if(corners.length % 4 != 0) {
@@ -113,29 +113,77 @@ function CheckWithBaryzentrical(reflP=[], wall=[]) {
     return bc1.every(coord => coord >= 0 && coord <= 1) || bc2.every(coord => coord >= 0 && coord <= 1);
 }
 
-function OutPut() {
-    for(let i = 0; i<Walls.length; i++) {
-        let distance = getDistance(getImageSoundSource(Walls[i], speaker), microfon);
-        if(CheckWithBaryzentrical(calculateIntersection(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
-            if(i == 0) {
-                console.log("back wall.\tReflection distance = " + distance )
-            }
-            if(i == Walls.length-1) {
-                console.log("front wall.\tReflection distance = " + distance)
-            }
-            if(i%4 == 1 && i!= Walls.length-1) {
-                console.log((parseInt(i/5)+1) + ". ceiling.\tReflection distance = " + distance)
-            }
-            if(i%4 == 2) {
-                console.log((parseInt(i/5)+1) + ". right wall.\tReflection distance = " + distance)
-            }
-            if(i%4 == 3) {
-                console.log((parseInt(i/5)+1) + ". floor.\tReflection distance = " + distance)
-            }
-            if(i%4 == 0 && i != 0) {
-                console.log((parseInt(i/5)+1) + ". left wall.\tReflection distance = " + distance)
-            }
-        }
+function pointInPolygon3D(point, polygon) {
+    // Extrahiere die Koordinaten des Punktes
+    var pointX = point[0];
+    var pointY = point[1];
+    var pointZ = point[2];
+  
+    // Initialisiere eine Variable zur Zählung der Schnittpunkte
+    var intersections = 0;
+  
+    // Iteriere über die Kanten des Polygons
+    for (var i = 0; i < polygon.length; i++) {
+      var vertex1 = polygon[i];
+      var vertex2 = polygon[(i + 1) % polygon.length];
+  
+      // Extrahiere die Koordinaten der Eckpunkte der Kante
+      var x1 = vertex1[0];
+      var y1 = vertex1[1];
+      var z1 = vertex1[2];
+      var x2 = vertex2[0];
+      var y2 = vertex2[1];
+      var z2 = vertex2[2];
+  
+    //   // Überprüfe, ob die horizontale Linie den Rand der Kante schneidet
+    //   if (((y1 <= pointY && pointY < y2) || (y2 <= pointY && pointY < y1)) &&
+    //     (pointX < (x2 - x1) * (pointY - y1) / (y2 - y1) + x1) &&
+    //     (pointZ < (z2 - z1) * (pointY - y1) / (y2 - y1) + z1)) {
+    //     // Inkrementiere die Anzahl der Schnittpunkte
+    //     intersections++;
+      // Überprüfe, ob die horizontale Linie den Rand der Kante schneidet
+      if (((y1 <= pointY && pointY < y2) || (y2 <= pointY && pointY < y1)) &&
+        (pointX < (x2 - x1) * (pointY - y1) / (y2 - y1) + x1)) {
+        // Inkrementiere die Anzahl der Schnittpunkte
+        intersections++;
+  }
     }
-}
+    console.log(intersections)
+  
+    // Wenn die Anzahl der Schnittpunkte ungerade ist, liegt der Punkt im Polygon
+    return intersections % 2 === 1;
+  }
+  
+  // Beispielanwendung
+  var polygon3D = [[0, 0, 0], [0, 5, 0], [5, 5, 0], [5, 0, 0]];
+  var point3D = [0, 3, 0];
+  var isInside3D = pointInPolygon3D(point3D, polygon3D);
+  console.log(isInside3D); // true
+  
+
+// function OutPut() {
+//     for(let i = 0; i<Walls.length; i++) {
+//         let distance = getDistance(getImageSoundSource(Walls[i], speaker), microfon);
+//         if(CheckWithBaryzentrical(calculateIntersection(Walls[i], microfon, getImageSoundSource(Walls[i], speaker)), Walls[i])) {
+//             if(i == 0) {
+//                 console.log("back wall.\tReflection distance = " + distance )
+//             }
+//             if(i == Walls.length-1) {
+//                 console.log("front wall.\tReflection distance = " + distance)
+//             }
+//             if(i%4 == 1 && i!= Walls.length-1) {
+//                 console.log((parseInt(i/5)+1) + ". ceiling.\tReflection distance = " + distance)
+//             }
+//             if(i%4 == 2) {
+//                 console.log((parseInt(i/5)+1) + ". right wall.\tReflection distance = " + distance)
+//             }
+//             if(i%4 == 3) {
+//                 console.log((parseInt(i/5)+1) + ". floor.\tReflection distance = " + distance)
+//             }
+//             if(i%4 == 0 && i != 0) {
+//                 console.log((parseInt(i/5)+1) + ". left wall.\tReflection distance = " + distance)
+//             }
+//         }
+//     }
+// }
         
