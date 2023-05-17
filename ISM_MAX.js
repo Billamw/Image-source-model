@@ -113,6 +113,51 @@ function CheckWithBaryzentrical(reflP=[], wall=[]) {
     return bc1.every(coord => coord >= 0 && coord <= 1) || bc2.every(coord => coord >= 0 && coord <= 1);
 }
 
+function calculateIntersection(point, polygon) {
+  let P1 = [1000000, 0 , 0];
+  let P2 = point;
+  let intersections = 0;
+  for(let i=0; i<polygon.length; i++) {
+    let Q1 = polygon[i];
+    let Q2 = polygon[(i + 1) % polygon.length];
+    const numerator = math.cross(math.subtract(Q1, P1), math.subtract(Q2, Q1));
+    const denominator = math.cross(math.subtract(P2, P1), math.subtract(Q2, Q1));
+    
+    const t1 = math.dot(numerator, denominator) / math.norm(denominator) * math.norm(denominator);
+    const t2 = math.dot(math.cross(math.subtract(P2, P1), math.subtract(Q1, P1)), numerator) / math.norm(denominator) * math.norm(denominator);
+    
+    if (t1 > 0 && t1 < 1 && t2 > 0 && t2 < 1) {
+      const intersection = math.add(P1, math.multiply(t1, math.subtract(P2, P1)));
+      console.log(intersection)
+      intersections++;
+    }
+  }
+  console.log(intersections)
+  return intersections%2 == 1
+}
+
+function isInPolygon(point, polygon) {
+  let pointOutside = [-10000, 0, 0]
+  let intersections = 0;
+  for(let i=0; i<polygon.length; i++) {
+    let vertex1 = polygon[i];
+    let vertex2 = polygon[(i + 1) % polygon.length];
+
+    let numerator = math.cross(math.subtract(vertex1, pointOutside), math.subtract(vertex2, point));
+    let denominator = math.cross(math.subtract(vertex2, vertex1), math.subtract(point, pointOutside));
+                                      //In Max die Norm ohne sqrt noch machen um es performanter zu machen                  
+    let t1 = math.dot(numerator, denominator) / math.norm(denominator)*math.norm(denominator);
+    let t2 = math.dot(math.cross(math.subtract(point, pointOutside), math.subtract(vertex1, pointOutside)), numerator) / math.norm(denominator)*math.norm(denominator);
+
+    if ((0 <= t1 && t1 <= 1) && (0 <= t2 && t2 <= 1)) {
+      intersections++;
+    }
+  }
+
+  return intersections % 2 == 1;
+
+}
+
 function pointInPolygon3D(point, polygon) {
     // Extrahiere die Koordinaten des Punktes
     var pointX = point[0];
@@ -151,14 +196,17 @@ function pointInPolygon3D(point, polygon) {
     console.log(intersections)
   
     // Wenn die Anzahl der Schnittpunkte ungerade ist, liegt der Punkt im Polygon
-    return intersections % 2 === 1;
+    return intersections % 2 == 1;
   }
   
   // Beispielanwendung
   var polygon3D = [[0, 0, 0], [0, 5, 0], [5, 5, 0], [5, 0, 0]];
   var point3D = [0, 3, 0];
-  var isInside3D = pointInPolygon3D(point3D, polygon3D);
-  console.log(isInside3D); // true
+  // var isInside3D = pointInPolygon3D(point3D, polygon3D);
+  // var isInPolygon1 = isInPolygon(point3D, polygon3D);
+  var tst = calculateIntersection(point3D, polygon3D);
+  // console.log(isInPolygon1)
+  console.log(tst); // true
   
 
 // function OutPut() {
