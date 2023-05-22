@@ -113,6 +113,7 @@ function CheckWithBaryzentrical(reflP=[], wall=[]) {
     return bc1.every(coord => coord >= 0 && coord <= 1) || bc2.every(coord => coord >= 0 && coord <= 1);
 }
 
+// not working method of containsPoint
 function calculateIntersection(point, polygon) {
   let P1 = [1000000, 0 , 0];
   let P2 = point;
@@ -136,6 +137,81 @@ function calculateIntersection(point, polygon) {
   return intersections%2 == 1
 }
 
+// not working method of containsPoint
+function calculateIntersection3(point, polygon) {
+  let P1 = point;
+  let P2 = [1000000, 0 , 0];
+  let intersections = 0;
+  for(let i=0; i<polygon.length; i++) {
+    let Q1 = polygon[i];
+    let Q2 = polygon[(i + 1) % polygon.length];
+
+    if(checkLineIntersection(P1, P2, Q1, Q2)) {
+      intersections++;
+    }
+
+  }
+  console.log("intersection= " + intersections)
+  return intersections%2 == 1
+}
+function checkLineIntersection(a, b, c, d) {
+  var ab = math.subtract(b, a);
+  var cd = math.subtract(d, c);
+  
+  var denominator = math.norm(math.cross(ab, cd));
+
+  // Überprüfen, ob die Linien parallel sind (denominator nahezu Null)
+  if (math.norm(denominator) < Number.EPSILON) {
+    // Linien sind parallel, es gibt keinen Schnittpunkt
+    return false;
+  }
+
+  var ac = math.subtract(c, a);
+
+  var numerator1 = math.norm(math.cross(ac, cd));
+  var numerator2 = math.norm(math.cross(ac, ab));
+
+  var lambda = numerator1 / denominator;
+  var my = numerator2 / denominator;
+
+  // Überprüfen, ob die Werte für lambda und my im gültigen Bereich liegen (normalerweise 0-1)
+  if (lambda > 0 && lambda <= 1 && my > 0 && my <= 1) {
+    // Linien schneiden sich
+    return true;
+  } else {
+    // Linien schneiden sich nicht
+    return false;
+  }
+}
+// not working method of containsPoint
+function calculateIntersection2(point, polygon) {
+  let P1 = point;
+  let P2 = [P1[0]-1000000, P1[1]-0 , P1[2]-0];
+  let intersections = 0;
+  for(let i=0; i<polygon.length; i++) {
+    let Q1 = polygon[i];
+    let Qtmp = polygon[(i + 1) % polygon.length];
+    let Q2 = [Q1[0]-Qtmp[0], Q1[1]-Qtmp[1], Q1[2]-Qtmp[2]];
+
+    let my = (P2[1] * (Q1[2] - P1[2]) - P2[2] * (Q1[1] - P1[1])) / (Q2[1] * P2[2] - P2[1] * Q2[2]);
+    let lambda = (Q1[0] + my * Q2[0] - P1[0]) / P2[0]
+
+
+
+    if(i==1) {
+
+      console.log("lam1= " + lambda0)
+      console.log("Q2_x= " + Q2[0])
+      console.log("lam2= " + lambda1)
+      console.log("Q2_y= " + Q2[1])
+      console.log("lam3= " + lambda2)
+      console.log("Q2_z= " + Q2[2])
+    }
+  }
+  console.log("intersection= " + intersections)
+  return intersections%2 == 1
+}
+// not working method of containsPoint
 function isInPolygon(point, polygon) {
   let pointOutside = [-10000, 0, 0]
   let intersections = 0;
@@ -157,7 +233,7 @@ function isInPolygon(point, polygon) {
   return intersections % 2 == 1;
 
 }
-
+// not working method of containsPoint
 function pointInPolygon3D(point, polygon) {
     // Extrahiere die Koordinaten des Punktes
     var pointX = point[0];
@@ -201,10 +277,10 @@ function pointInPolygon3D(point, polygon) {
   
   // Beispielanwendung
   var polygon3D = [[0, 0, 0], [0, 5, 0], [5, 5, 0], [5, 0, 0]];
-  var point3D = [0, 3, 0];
+  var point3D = [0, 6, 0];
   // var isInside3D = pointInPolygon3D(point3D, polygon3D);
   // var isInPolygon1 = isInPolygon(point3D, polygon3D);
-  var tst = calculateIntersection(point3D, polygon3D);
+  var tst = calculateIntersection3(point3D, polygon3D);
   // console.log(isInPolygon1)
   console.log(tst); // true
   
