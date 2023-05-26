@@ -1,12 +1,28 @@
 const math = require('mathjs');
 
+
+// check if the given polygon is in
+function isInTwoDimSpace(polygon=[]) {
+  let vec1 = math.subtract(polygon[0], polygon[parseInt((polygon.length-1) / 2)]);
+  let vec2 = math.subtract(polygon[0], polygon[polygon.length - parseInt((polygon.length-1) / 2)]);
+  let normal = math.cross(vec1, vec2);
+  for (let i = 0; i < polygon.length; i++) {
+    if (math.dot(normal, polygon[i]) > 0.005) {
+      return false;
+    }
+  }
+  return true;
+}
+
 //lvec: location vector ist the first vector of each wall
 //svec: support vector wall[3]-wall[0]
 //dvec: direction vector wall[1]-wall[0]
 function getImageSoundSource(polygon = [], speaker = []) {
     let lvec = polygon[0];
-    let svec = math.subtract(polygon[0], polygon[parseInt((polygon.length-1) / 2)]);
-    let dvec = math.subtract(polygon[0], polygon[polygon.length - parseInt((polygon.length-1) / 2)]);
+    // let svec = math.subtract(polygon[0], polygon[parseInt((polygon.length-1) / 2)]);
+    // let dvec = math.subtract(polygon[0], polygon[polygon.length - parseInt((polygon.length-1) / 2)]);
+    let svec = math.subtract(polygon[0], polygon[1]);
+    let dvec = math.subtract(polygon[0], polygon[2]);
     let normal = math.cross(dvec, svec);
     normal = math.divide(normal, math.norm(normal));
     let levToSpeaker = math.subtract(lvec, speaker);
@@ -48,18 +64,6 @@ function calculateIntersection(polygon=[], microphone=[], ISS=[]) {
   }
   return toReturn;
 }
-// check if the given polygon is in
-function isInTwoDimSpace(polygon=[]) {
-  let vec1 = math.subtract(polygon[0], polygon[parseInt((polygon.length-1) / 2)]);
-  let vec2 = math.subtract(polygon[0], polygon[polygon.length - parseInt((polygon.length-1) / 2)]);
-  let normal = math.cross(vec1, vec2);
-  for (let i = 0; i < polygon.length; i++) {
-    if (math.dot(normal, polygon[i]) > 0.005) {
-      return false;
-    }
-  }
-  return true;
-}
 
 function getDistance(ISS = [], microfon = []) {
    return math.norm(math.subtract(ISS, microfon));
@@ -73,6 +77,7 @@ const microfon = [5,6,4];
 
 if(isInTwoDimSpace(polygon)) {
   const iss = getImageSoundSource(polygon, speaker);
+  console.log("iss: " + iss)
   const intersection = calculateIntersection(polygon, microfon, iss);
   const contains = containsPoint(intersection, polygon);
   console.log("is valid: " + contains)
